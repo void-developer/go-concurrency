@@ -1,10 +1,10 @@
-package main
+package thread
 
 import (
 	"sync/atomic"
 )
 
-type ThreadPool struct {
+type Pool struct {
 	maxSize  int64
 	currSize atomic.Int64
 	signal   chan struct{}
@@ -12,8 +12,8 @@ type ThreadPool struct {
 
 type threadFunc func(...interface{})
 
-func NewPool(max int64) ThreadPool {
-	t := ThreadPool{
+func NewPool(max int64) Pool {
+	t := Pool{
 		maxSize:  max,
 		currSize: atomic.Int64{},
 		signal:   make(chan struct{}),
@@ -22,7 +22,7 @@ func NewPool(max int64) ThreadPool {
 	return t
 }
 
-func (t *ThreadPool) Start(exec threadFunc, params ...interface{}) {
+func (t *Pool) Start(exec threadFunc, params ...interface{}) {
 	t.lock()
 	go func(p ...interface{}) {
 		exec(params)
@@ -30,7 +30,7 @@ func (t *ThreadPool) Start(exec threadFunc, params ...interface{}) {
 	}(params)
 }
 
-func (t *ThreadPool) release() {
+func (t *Pool) release() {
 	if t.currSize.Add(-1) == t.maxSize-1 {
 		go func() {
 			t.signal <- struct{}{}
@@ -38,7 +38,7 @@ func (t *ThreadPool) release() {
 	}
 }
 
-func (t *ThreadPool) lock() {
+func (t *Pool) lock() {
 	if t.currSize.Load() >= t.maxSize {
 		<-t.signal
 	}
