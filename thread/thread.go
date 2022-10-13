@@ -12,8 +12,8 @@ type Pool struct {
 
 type threadFunc func(...interface{})
 
-func NewPool(max int64) Pool {
-	t := Pool{
+func NewPool(max int64) *Pool {
+	t := &Pool{
 		maxSize:  max,
 		currSize: atomic.Int64{},
 		signal:   make(chan struct{}),
