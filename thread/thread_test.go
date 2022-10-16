@@ -54,3 +54,20 @@ func TestBelowPoolLimits(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+type CustomObject struct {
+	Name string
+}
+
+func TestWithCustomObject(t *testing.T) {
+	pool := NewPool(10)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	pool.Start(func(p ...interface{}) {
+		start := time.Now()
+		fmt.Println(fmt.Sprintf("Executing %s at %d", p[0].(CustomObject).Name, start.Nanosecond()))
+		time.Sleep(3 * time.Second)
+		wg.Done()
+	}, CustomObject{Name: "CustomObject"}, 0)
+	wg.Wait()
+}

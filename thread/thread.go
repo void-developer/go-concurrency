@@ -25,7 +25,7 @@ func NewPool(max int64) *Pool {
 func (t *Pool) Start(exec threadFunc, params ...interface{}) {
 	t.lock()
 	go func(p ...interface{}) {
-		exec(params)
+		exec(params...)
 		t.release()
 	}(params)
 }
