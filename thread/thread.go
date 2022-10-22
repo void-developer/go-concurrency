@@ -30,6 +30,18 @@ func (t *Pool) Start(exec threadFunc, params ...interface{}) {
 	}(params)
 }
 
+func (t *Pool) StartNonBlocking(exec threadFunc, params ...interface{}) bool {
+	if t.currSize.Load() >= t.maxSize {
+		return false
+	}
+	t.lock()
+	go func(p ...interface{}) {
+		exec(params...)
+		t.release()
+	}(params)
+	return true
+}
+
 func (t *Pool) release() {
 	if t.currSize.Add(-1) == t.maxSize-1 {
 		go func() {

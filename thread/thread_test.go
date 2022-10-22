@@ -71,3 +71,21 @@ func TestWithCustomObject(t *testing.T) {
 	}, CustomObject{Name: "CustomObject"}, 0)
 	wg.Wait()
 }
+
+func TestExceedNonBlockingFunctions(t *testing.T) {
+	pool := NewPool(3)
+	wg := sync.WaitGroup{}
+	wg.Add(9)
+	for i := 0; i < 9; i++ {
+		if !pool.StartNonBlocking(func(p ...interface{}) {
+			start := time.Now()
+			fmt.Println(fmt.Sprintf("Executing %d at %d, waiting %d", p[0], start.Nanosecond(), 2))
+			time.Sleep(2 * time.Second)
+			fmt.Println(fmt.Sprintf("Finished %d at %d", p[0], time.Now().Nanosecond()))
+			wg.Done()
+		}, i) {
+			wg.Done()
+		}
+	}
+	wg.Wait()
+}
