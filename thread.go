@@ -1,4 +1,4 @@
-package thread
+package go_concurrency
 
 import (
 	"sync/atomic"
