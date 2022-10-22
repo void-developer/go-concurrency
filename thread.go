@@ -1,7 +1,9 @@
 package go_concurrency
 
 import (
+	"github.com/void-developer/go-concurrency/task"
 	"sync/atomic"
+	"time"
 )
 
 type Pool struct {
@@ -30,11 +32,16 @@ func (t *Pool) Start(exec threadFunc, params ...interface{}) {
 	}(params)
 }
 
-func (t *Pool) StartNonBlocking(exec threadFunc, params ...interface{}) bool {
-	if t.currSize.Load() >= t.maxSize {
+func (t *Pool) StartWithOptions(exec threadFunc, options task.Options, params ...interface{}) bool {
+	if !options.Blocking && t.currSize.Load() >= t.maxSize {
 		return false
 	}
+	start := time.Now()
 	t.lock()
+	if time.Since(start) > options.ScheduleTimeout {
+		t.release()
+		return false
+	}
 	go func(p ...interface{}) {
 		exec(params...)
 		t.release()
