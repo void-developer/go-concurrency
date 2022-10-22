@@ -32,13 +32,13 @@ func (t *Pool) Start(exec threadFunc, params ...interface{}) {
 	}(params)
 }
 
-func (t *Pool) StartWithOptions(exec threadFunc, options task.Options, params ...interface{}) bool {
+func (t *Pool) StartWithOptions(options task.Options, exec threadFunc, params ...interface{}) bool {
 	if !options.Blocking && t.currSize.Load() >= t.maxSize {
 		return false
 	}
 	start := time.Now()
 	t.lock()
-	if time.Since(start) > options.ScheduleTimeout {
+	if options.ScheduleTimeout > 0 && time.Since(start) > options.ScheduleTimeout {
 		t.release()
 		return false
 	}
